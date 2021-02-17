@@ -1,7 +1,7 @@
 const { any } = require('bluebird')
 const mongoose = require('mongoose')
 
-const  Schema  =  mongoose.Schema 
+const Schema = mongoose.Schema
 
 const ReadingSchema = new Schema({
   sensor: { type: Schema.Types.ObjectId, ref: 'Sensor' },
@@ -13,7 +13,7 @@ const ReadingSchema = new Schema({
     temperature: Schema.Types.Number,
     humidity: Schema.Types.Number,
     co2Equivalent: Schema.Types.Number,
-  }
+  },
 })
 
 module.exports = { ReadingSchema }

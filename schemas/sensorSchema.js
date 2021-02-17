@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const  Schema = mongoose.Schema
+const Schema = mongoose.Schema
 
 const SensorSchema = new Schema({
   // _id: Schema.Types.ObjectId,
@@ -9,4 +9,4 @@ const SensorSchema = new Schema({
   readings: [{ type: Schema.Types.ObjectId, ref: 'Reading' }],
 })
 
-module.exports = { SensorSchema } 
+module.exports = { SensorSchema }

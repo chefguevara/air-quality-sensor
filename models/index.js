@@ -1,4 +1,4 @@
-const { Sensor } = require( './sensor.js')
+const { Sensor } = require('./sensor.js')
 const { Reading } = require('./reading.js')
 
-module.exports = {Sensor, Reading}
+module.exports = { Sensor, Reading }
