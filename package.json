@@ -8,7 +8,11 @@
     "chalk": "^4.1.0",
     "content-type": "^1.0.4",
     "express": "^4.17.1",
-    "mongoose": "5.11.15"
+    "fast-safe-stringify": "^2.0.7",
+    "mongoose": "5.11.15",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.0",
+    "winston-transport": "^4.4.0"
   },
   "devDependencies": {
     "eslint": "^7.19.0",
@@ -19,8 +23,8 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-standard": "^5.0.0",
-    "prettier": "^2.2.1",
     "nodemon": "^2.0.7",
+    "prettier": "^2.2.1",
     "uuid": "^8.3.2"
   },
   "scripts": {

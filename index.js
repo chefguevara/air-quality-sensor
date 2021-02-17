@@ -7,12 +7,15 @@ const mongoose = require('mongoose')
 const express = require('express')
 const bodyParser = require('body-parser')
 const { Sensor, Reading } = require('./models')
+
+const { logger, errorLogger } = require('./utils/logger')
 const startApp = async () => {
   const app = (module.exports = express())
 
-  const error = (status, msg) => {
+  const error = (status, msg, additionalOutput = '') => {
     const err = new Error(msg)
     err.status = status
+    err.additionalOutput = additionalOutput
     return err
   }
 
@@ -37,8 +40,7 @@ const startApp = async () => {
     try {
       return res.status(200).json(await Sensor.find())
     } catch (err) {
-      console.error(err)
-      return res.status(500)
+      return error(500, err.message, { error: err })
     }
   })
 
@@ -47,24 +49,27 @@ const startApp = async () => {
     try {
       const sensor = new Sensor({ ...body })
       await sensor.save()
-      console.info(`Sensor ${body.name} created.`)
+      logger.info({ message: `Sensor ${body.name} created.` })
       res.send(sensor)
     } catch (err) {
-      console.error(err)
-      return res.status(500)
+      return error(500, err.message, { error: err })
     }
   })
   app.get('/api/sensor/:id', async (req, res, next) => {
-    console.log('populate not populates')
     const _id = req.params.id
-    const currentReadings = await Sensor.findOne({ _id })
+    try {
+      const currentReadings = await Sensor.findOne({ _id })
+      if (!currentReadings) return next(error(404, 'Sensor not found'))
 
-    if (!currentReadings.populated('readings')) {
-      console.info('currentReadings not populated')
-      await currentReadings.populate('readings').execPopulate()
+      if (!currentReadings.populated('readings')) {
+        logger.info({ message: 'currentReadings not populated' })
+        await currentReadings.populate('readings').execPopulate()
+      }
+      if (currentReadings) res.send(currentReadings)
+      else next()
+    } catch (err) {
+      next(error(500, err.message, { error: err }))
     }
-    if (currentReadings) res.send(currentReadings)
-    else next()
   })
 
   app.post('/api/sensor/:id', async (req, res, next) => {
@@ -72,29 +77,34 @@ const startApp = async () => {
     const body = req.body
     try {
       const sensor = await Sensor.findById(id)
-      if (!sensor) res.status(404).send({ error: 'Sensor not found' })
+      if (!sensor) return error(404, 'Sensor not found')
       const reading = new Reading({ ...body, sensor: sensor._id })
       await reading.save()
       res.send(reading)
     } catch (err) {
-      res.status(500).send(err)
+      next(error(500, err.message, { error: err }))
     }
   })
 
   // Error Handler
-  app.use((err, req, res, next) => {
-    res.status(err.status || 500)
-    res.send({ error: err.message })
+  app.use((error, req, res, next) => {
+    const { message, status, additionalOutput } = error
+    errorLogger({
+      message,
+      status,
+      additionalOutput,
+    })
+    res.status(status).send(message)
+    next()
   })
 
   // default handler: 404
   app.use((req, res) => {
-    res.status(404)
-    res.send({ error: 'Not Found' })
+    return error(404, 'Not Found')
   })
 
   app.listen(3000, () => {
-    console.log('Express started on port 3000')
+    logger.info({ message: 'Express started on port 3000' })
   })
 }
 const run = async () => {
@@ -112,7 +122,7 @@ const run = async () => {
     useFindAndModify: false,
     useCreateIndex: true,
   })
-  console.log('MongoDB database connection established successfully')
+  logger.info({ message: 'MongoDB database connection established successfully' })
   startApp()
 }
 
